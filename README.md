@@ -16,6 +16,10 @@ employer buyer. The funnel is: free calculator → back-pay verdict → **$29 Cl
 
 Live: https://www.wagecoach.com
 
+## Content maintenance
+
+Blog guides are defined in `lib/posts.ts`. Substantive refreshes should preserve the post schema, use primary sources for time-sensitive wage-law claims, and update the post date only when the reader-facing content materially changes.
+
 ## Stack
 
 - Next.js 16 (App Router) + React 19

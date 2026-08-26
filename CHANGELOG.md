@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-26
+
+- Refreshed the unpaid-wage demand-letter guide with a records checklist, settlement cautions, retaliation guidance, and current U.S. Department of Labor sources.
+- Refreshed the on-call-pay guide with a direct answer and the DOL's current hours-worked guidance.
+
 ## Unreleased — GEO audit fixes
 
 - **`llms.txt` added** (`public/llms.txt`): a machine-readable summary of what
