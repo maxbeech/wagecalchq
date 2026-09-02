@@ -93,6 +93,13 @@ npm test         # engine + data + URL tests
 npm run lint
 ```
 
+## Monitoring
+
+Browser errors are reported to Sentry when `NEXT_PUBLIC_SENTRY_DSN` is set. The
+client filter excludes only the observed crawler-owned parse signature
+(`app:///…/script.js:1:2`); application errors and other JavaScript failures
+continue to be reported.
+
 ## Paid offering
 
 Two one-time products, both through the same graceful Stripe route

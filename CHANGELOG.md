@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Sentry synthetic crawler error filtering
+
+- Ignore the exact `SyntaxError: Invalid or unexpected token` signature emitted
+  by crawler-owned `script.js` files (`app:///…/script.js:1:2`). This keeps
+  Sentry focused on actionable application errors while preserving other
+  JavaScript failures, including application `SyntaxError`s.
+
 ## 2026-08-26
 
 - Refreshed the unpaid-wage demand-letter guide with a records checklist, settlement cautions, retaliation guidance, and current U.S. Department of Labor sources.
