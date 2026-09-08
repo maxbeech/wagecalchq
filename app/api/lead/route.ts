@@ -3,13 +3,13 @@ import { SITE } from "@/lib/site";
 import { buildLeadEmail, type Lead } from "@/lib/lead-email";
 
 // Free-case-review intake. A submitted lead is delivered to whichever channels
-// are configured — Resend email (RESEND_API_KEY) and/or a partner webhook
-// (LEAD_WEBHOOK_URL, e.g. an attorney-network intake, CRM or Zapier hook).
-// Nothing is stored here: the site is otherwise database-free, so delivery is
-// the single integration point. If a channel is configured but fails, we tell
-// the user to email us directly rather than silently dropping the lead. If no
-// channel is configured at all, the route still accepts the submission so the
-// form works in every environment.
+// are configured — ThreadCamp email (THREADCAMP_API_KEY) and/or a partner
+// webhook (LEAD_WEBHOOK_URL, e.g. an attorney-network intake, CRM or Zapier
+// hook). Nothing is stored here: the site is otherwise database-free, so
+// delivery is the single integration point. If a channel is configured but
+// fails, we tell the user to email us directly rather than silently dropping
+// the lead. If no channel is configured at all, the route still accepts the
+// submission so the form works in every environment.
 //
 // Lead-gen to attorneys is regulated and varies by state bar (referral-fee and
 // advertising rules). This forwards an inquiry the user initiated; it is not a
@@ -19,14 +19,16 @@ function validEmail(e: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 }
 
-// Deliver via Resend's REST API (no SDK dependency, matching the Stripe call).
+// Deliver via ThreadCamp's REST API (no SDK dependency, matching the Stripe
+// call). `from` must be one of the account's own inbox addresses — THREADCAMP_FROM
+// defaults to the dedicated wagecoach-leads inbox created for this product.
 async function sendEmail(lead: Lead): Promise<boolean | null> {
-  const key = process.env.RESEND_API_KEY;
+  const key = process.env.THREADCAMP_API_KEY;
   if (!key) return null; // not configured
   const to = process.env.LEAD_TO || SITE.email;
-  const from = process.env.LEAD_FROM || `WageCoach Leads <leads@${SITE.domain}>`;
+  const from = process.env.THREADCAMP_FROM || "WageCoach Leads <wagecoach-leads@relay.threadcamp.com>";
   const { subject, html, text } = buildLeadEmail(lead);
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await fetch("https://www.threadcamp.com/v1/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from, to: [to], subject, html, text, reply_to: lead.email }),
