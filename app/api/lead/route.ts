@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { SITE } from "@/lib/site";
 import { buildLeadEmail, type Lead } from "@/lib/lead-email";
+import { sendEmail as sendThreadCampEmail } from "@/lib/threadcamp-mail";
 
 // Free-case-review intake. A submitted lead is delivered to whichever channels
 // are configured — ThreadCamp email (THREADCAMP_API_KEY) and/or a partner
@@ -19,21 +20,15 @@ function validEmail(e: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 }
 
-// Deliver via ThreadCamp's REST API (no SDK dependency, matching the Stripe
-// call). `from` must be one of the account's own inbox addresses — THREADCAMP_FROM
-// defaults to the dedicated wagecoach-leads inbox created for this product.
+// Deliver via lib/threadcamp-mail.ts — the same generated-client shape every
+// other ProductFactory product uses for ThreadCamp, rather than a one-off
+// fetch call in this route.
 async function sendEmail(lead: Lead): Promise<boolean | null> {
-  const key = process.env.THREADCAMP_API_KEY;
-  if (!key) return null; // not configured
   const to = process.env.LEAD_TO || SITE.email;
-  const from = process.env.THREADCAMP_FROM || "WageCoach Leads <wagecoach-leads@relay.threadcamp.com>";
   const { subject, html, text } = buildLeadEmail(lead);
-  const res = await fetch("https://www.threadcamp.com/v1/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to: [to], subject, html, text, reply_to: lead.email }),
-  });
-  return res.ok;
+  const result = await sendThreadCampEmail({ to, subject, html, text, replyTo: lead.email });
+  if (result.sent === false && result.reason === "not_configured") return null;
+  return result.sent;
 }
 
 async function sendWebhook(lead: Lead): Promise<boolean | null> {

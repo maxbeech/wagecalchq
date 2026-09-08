@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "deploy": "npx vercel pull --yes --environment=production && npx vercel build --prod && npx vercel deploy --prebuilt --prod",
-    "test": "tsx test/overtime.test.mts && tsx test/wage.test.mts && tsx test/pay-url.test.mts && tsx test/salary.test.mts && tsx test/backpay.test.mts && tsx test/sentry-client-filter.test.mts && tsx test/lead-email.test.mts && tsx test/fuzz.test.mts"
+    "test": "tsx test/overtime.test.mts && tsx test/wage.test.mts && tsx test/pay-url.test.mts && tsx test/salary.test.mts && tsx test/backpay.test.mts && tsx test/sentry-client-filter.test.mts && tsx test/lead-email.test.mts && tsx test/threadcamp-mail.test.mts && tsx test/fuzz.test.mts"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.71.0",
