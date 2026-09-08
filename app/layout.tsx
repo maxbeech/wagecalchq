@@ -6,6 +6,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { OpenHelmAnalytics } from "../lib/openhelm-analytics";
 
 // Editorial serif for headings; clean sans for UI; mono for ledger figures.
 const fraunces = Fraunces({
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteFooter />
         <Analytics />
         <SpeedInsights />
+        <OpenHelmAnalytics />
       </body>
     </html>
   );
