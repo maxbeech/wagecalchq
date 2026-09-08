@@ -2,12 +2,17 @@
  * ThreadCamp — this product's transactional email.
  *
  * WageCoach sends through ThreadCamp (threadcamp.com), a Resend-compatible
- * email API for AI agents that we own. It has its own dedicated inbox
- * (wagecoach-leads@relay.threadcamp.com) and its own API key, but not yet its
- * own verified domain — `mail.wagecoach.com` is already claimed as an SES
- * identity by something else in the account (see ProductFactory/_services/
- * SERVICES.md, 2026-09-08 entry), so mail sends from the shared relay until
- * that's sorted out.
+ * email API for AI agents that we own. It has its own dedicated inbox and API
+ * key, and its own verified sending domain: `leads@send.wagecoach.com`.
+ *
+ * NOT `mail.wagecoach.com` — that exact string is stuck in ThreadCamp's own
+ * `domains` table (a leftover from wagecoach's abandoned OpenHelm Mail setup;
+ * see ProductFactory/_services/SERVICES.md, 2026-09-08 entry) and neither
+ * ThreadCamp's nor the OpenHelm worker's API exposes a way to release it —
+ * `POST /v1/domains` 500s with a raw Postgres unique-constraint violation, and
+ * `OPTIONS /v1/domains` on the OpenHelm worker lists only GET/POST, no DELETE.
+ * `send.wagecoach.com` is a different string, so it registered and verified
+ * cleanly (DNS published via IONOS, ~30s to verify).
  *
  * NO SILENT SUCCESS. An unconfigured product returns
  * `{ sent: false, reason: "not_configured" }` and a failed send returns
@@ -33,7 +38,7 @@ function assertServer(): void {
 export interface MailConfig {
   apiUrl: string;
   apiKey: string | null;
-  /** The address this product sends from, e.g. "wagecoach-leads@relay.threadcamp.com". */
+  /** The address this product sends from, e.g. "leads@send.wagecoach.com". */
   fromAddress: string | null;
   /** Display name on outbound mail. Without it, ThreadCamp shows the raw tenant id. */
   fromName: string;
@@ -44,7 +49,7 @@ export function mailConfig(): MailConfig {
   return {
     apiUrl: (process.env.THREADCAMP_API_URL || DEFAULT_API_URL).replace(/\/+$/, ""),
     apiKey: process.env.THREADCAMP_API_KEY?.trim() || null,
-    fromAddress: process.env.THREADCAMP_FROM_ADDRESS?.trim() || "wagecoach-leads@relay.threadcamp.com",
+    fromAddress: process.env.THREADCAMP_FROM_ADDRESS?.trim() || "leads@send.wagecoach.com",
     fromName: process.env.THREADCAMP_FROM_NAME?.trim() || "WageCoach Leads",
   };
 }

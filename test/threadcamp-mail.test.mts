@@ -8,7 +8,7 @@ const ORIGINAL_FETCH = globalThis.fetch;
 
 function configure(over: Record<string, string | undefined> = {}) {
   process.env.THREADCAMP_API_KEY = "sk_live_test";
-  process.env.THREADCAMP_FROM_ADDRESS = "wagecoach-leads@relay.threadcamp.com";
+  process.env.THREADCAMP_FROM_ADDRESS = "leads@send.wagecoach.com";
   process.env.THREADCAMP_FROM_NAME = "WageCoach Leads";
   process.env.THREADCAMP_API_URL = "https://worker.test/v1";
   for (const [k, v] of Object.entries(over)) {
@@ -42,12 +42,17 @@ eq(emailEnabled(), false, "disabled without an API key");
 let result = await sendEmail({ to: "a@b.com", subject: "hi", text: "hi" });
 eq(result.sent, false, "unconfigured send reports not sent");
 if (!result.sent) eq(result.reason, "not_configured", "unconfigured reason");
-eq(sendingAddress(), "wagecoach-leads@relay.threadcamp.com", "sendingAddress still reflects the from default");
+eq(sendingAddress(), "leads@send.wagecoach.com", "sendingAddress still reflects the from default");
 
 // Configured: emailEnabled and sendingAddress
 configure();
 eq(emailEnabled(), true, "enabled once key + from address are set");
-eq(sendingAddress(), "wagecoach-leads@relay.threadcamp.com", "sendingAddress reflects config");
+eq(sendingAddress(), "leads@send.wagecoach.com", "sendingAddress reflects config");
+
+// The hardcoded fallback (no THREADCAMP_FROM_ADDRESS at all) is the real
+// verified branded inbox, not the shared relay it started on.
+configure({ THREADCAMP_FROM_ADDRESS: undefined });
+eq(sendingAddress(), "leads@send.wagecoach.com", "falls back to the branded send.wagecoach.com inbox");
 
 // Empty recipient list → error, no network call
 configure();
@@ -75,7 +80,7 @@ if (result.sent) {
 }
 eq(calls.length, 1, "exactly one request for one recipient list");
 eq(calls[0]!.url, "https://worker.test/v1/emails", "posts to the configured API URL");
-eq(calls[0]!.body.from, "wagecoach-leads@relay.threadcamp.com", "from is the bare configured address");
+eq(calls[0]!.body.from, "leads@send.wagecoach.com", "from is the bare configured address");
 eq(calls[0]!.body.from_name, "WageCoach Leads", "from_name carries the display name separately");
 eq(JSON.stringify(calls[0]!.body.to), JSON.stringify(["a@b.com", "c@d.com"]), "to is an array of trimmed recipients");
 eq(calls[0]!.body.reply_to, "lead@x.com", "reply_to passed through");
