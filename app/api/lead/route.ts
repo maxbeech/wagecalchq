@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { SITE } from "@/lib/site";
+import { buildLeadEmail, type Lead } from "@/lib/lead-email";
 
 // Free-case-review intake. A submitted lead is delivered to whichever channels
 // are configured — Resend email (RESEND_API_KEY) and/or a partner webhook
@@ -14,38 +15,8 @@ import { SITE } from "@/lib/site";
 // advertising rules). This forwards an inquiry the user initiated; it is not a
 // referral-fee arrangement. Confirm the model with counsel before going live.
 
-interface Lead {
-  name?: string;
-  email?: string;
-  phone?: string;
-  state?: string;
-  claimType?: string;
-  amount?: number;
-  summary?: string;
-}
-
 function validEmail(e: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-}
-
-// Escape user-supplied values before embedding them in the notification email.
-function esc(v: unknown): string {
-  return String(v ?? "")
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function leadRows(lead: Lead): Array<[string, string]> {
-  const amount = typeof lead.amount === "number" && isFinite(lead.amount)
-    ? `$${Math.round(lead.amount).toLocaleString("en-US")}`
-    : "";
-  return ([
-    ["Name", lead.name], ["Email", lead.email], ["Phone", lead.phone],
-    ["State", lead.state], ["Claim type", lead.claimType],
-    ["Estimated amount", amount], ["Summary", lead.summary],
-  ] as Array<[string, string | undefined]>)
-    .filter(([, v]) => v && String(v).trim())
-    .map(([k, v]) => [k, String(v)]);
 }
 
 // Deliver via Resend's REST API (no SDK dependency, matching the Stripe call).
@@ -54,19 +25,11 @@ async function sendEmail(lead: Lead): Promise<boolean | null> {
   if (!key) return null; // not configured
   const to = process.env.LEAD_TO || SITE.email;
   const from = process.env.LEAD_FROM || `WageCoach Leads <leads@${SITE.domain}>`;
-  const rows = leadRows(lead)
-    .map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;font-weight:600">${esc(k)}</td><td style="padding:4px 0">${esc(v)}</td></tr>`)
-    .join("");
-  const html = `<h2 style="font-family:Georgia,serif">New free-case-review lead</h2>`
-    + `<table style="font-family:Arial,sans-serif;font-size:14px;border-collapse:collapse">${rows}</table>`
-    + `<p style="color:#888;font-size:12px;margin-top:16px">Source: wagecoach/free-case-review. General information, not legal advice.</p>`;
+  const { subject, html, text } = buildLeadEmail(lead);
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from, to: [to], subject: `New case review — ${lead.state || "lead"}${lead.name ? ` (${lead.name})` : ""}`,
-      html, reply_to: lead.email,
-    }),
+    body: JSON.stringify({ from, to: [to], subject, html, text, reply_to: lead.email }),
   });
   return res.ok;
 }

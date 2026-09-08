@@ -42,7 +42,7 @@ const DEFAULT_API_URL = "https://openhelm-worker.fly.dev/v1";
 function assertServer(): void {
   if (typeof window !== "undefined") {
     throw new Error(
-      "openhelm-mail must only be used on the server — it carries the product's API key. " +
+      "openhelm-mail must only be used on the server - it carries the product's API key. " +
         "Move this call into a route handler, server action or server component.",
     );
   }
@@ -176,7 +176,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendResult> {
   const cfg = mailConfig();
   if (!cfg.apiKey || !cfg.inboxId) {
     console.warn(
-      `[mail] OpenHelm Mail is not configured (OPENHELM_API_KEY / OPENHELM_MAIL_INBOX_ID) — ` +
+      `[mail] OpenHelm Mail is not configured (OPENHELM_API_KEY / OPENHELM_MAIL_INBOX_ID) - ` +
         `skipped "${input.subject}"`,
     );
     return { sent: false, reason: "not_configured" };
