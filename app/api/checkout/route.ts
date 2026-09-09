@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 // Stripe Checkout for the one-time products: the $19 multi-state compliance
 // report and the $29 wage Claim Kit. Keys are injected as Vercel env vars
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
   const price = process.env[PRODUCTS[product].env];
   if (!secret || !price) {
     return NextResponse.json(
-      { message: "This is launching shortly. Email hello@wagecoach.com for early access." },
+      { message: "This is launching shortly. Email hello@mail.wagecoach.com for early access." },
       { status: 200 },
     );
   }
@@ -62,10 +63,16 @@ export async function POST(req: Request) {
     });
     const session = await res.json();
     if (!res.ok) {
+      Sentry.captureMessage("Stripe checkout session creation failed", {
+        level: "error",
+        tags: { flow: "checkout", product },
+        extra: { status: res.status, stripeError: session?.error?.message },
+      });
       return NextResponse.json({ message: session?.error?.message ?? "Stripe error" }, { status: 502 });
     }
     return NextResponse.json({ url: session.url });
-  } catch {
+  } catch (err) {
+    Sentry.captureException(err, { tags: { flow: "checkout", product } });
     return NextResponse.json({ message: "Could not reach Stripe. Please try again." }, { status: 502 });
   }
 }
