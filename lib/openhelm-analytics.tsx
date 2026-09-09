@@ -1,5 +1,5 @@
 /**
- * OpenHelm Analytics — this product's Google Analytics 4 measurement.
+ * OpenHelm Analytics: this product's Google Analytics 4 measurement.
  *
  * ⚠️ GENERATED. The canonical copy is
  * `ProductFactory/_services/openhelm-analytics/openhelm-analytics.tsx`; edit it
@@ -30,7 +30,7 @@
  * THE PART THAT IS EASY TO GET WRONG. gtag.js sends one `page_view` when it
  * loads. The App Router then navigates on the client without a document load,
  * so every route after the first is invisible unless the app sends the event
- * itself — the single most common way a Next.js site reports a tenth of its
+ * itself, the single most common way a Next.js site reports a tenth of its
  * real traffic. So `send_page_view` is switched OFF at config time and every
  * view, including the first, is sent explicitly on pathname/query change.
  *
@@ -42,7 +42,7 @@
  *
  * NON-WEB SURFACES. A desktop (Tauri/Electron) or mobile (Expo/React Native)
  * build has no `document` to put a tag in. Those send through the Measurement
- * Protocol instead — see `openhelm-analytics-mp.ts` beside this file, which
+ * Protocol instead; see `openhelm-analytics-mp.ts` beside this file, which
  * reports to the SAME GA4 property through its own data stream. Do not try to
  * load gtag.js in a native shell.
  */
@@ -105,13 +105,13 @@ export function trackPageView(url: string): boolean {
 
 /**
  * The half that needs the navigation hooks. Isolated so the Suspense boundary
- * in `Analytics` covers it — see the header note on static rendering.
+ * in `Analytics` covers it; see the header note on static rendering.
  */
 function PageViews() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   // gtag.js sends nothing until it has loaded, but dataLayer queues, so there
-  // is no ordering problem — only a duplicate one, which this guards.
+  // is no ordering problem, only a duplicate one, which this guards.
   const lastSent = useRef<string | null>(null);
 
   useEffect(() => {
@@ -131,7 +131,7 @@ function PageViews() {
  *
  * The name is deliberately not `Analytics`. Nine of these products already
  * import `Analytics` from `@vercel/analytics`, and a second import of that
- * binding is a duplicate-identifier build failure, not a warning — so the
+ * binding is a duplicate-identifier build failure, not a warning, so the
  * generic name is the one name this component may not have.
  */
 export function OpenHelmAnalytics() {
@@ -139,7 +139,7 @@ export function OpenHelmAnalytics() {
     if (analyticsEnabled) return;
     if (process.env.NODE_ENV === "development") {
       console.warn(
-        "[openhelm-analytics] NEXT_PUBLIC_GA_MEASUREMENT_ID is not set — " +
+        "[openhelm-analytics] NEXT_PUBLIC_GA_MEASUREMENT_ID is not set, so " +
           "nothing is being measured. Set it in .env.local and in the Vercel " +
           "project's environment to switch measurement on.",
       );
